@@ -33,7 +33,10 @@
 #define BIT_POS_22(x)   ((x >> 22) & 1)
 #define BIT_POS_23(x)   ((x >> 23) & 1)
 
+#define STATUS_GREEN_POS(x)    (x & 1)
+#define STATUS_RED_POS(x)      ((x >> 1) & 1)
+
 //Public functions declaration
 void display_init();
 void display_test();
-void display_update(uint32 speed, uint32 heading, uint32 rpm);
+void display_update(uint32 speed, uint32 heading, uint32 rpm, uint8 status);

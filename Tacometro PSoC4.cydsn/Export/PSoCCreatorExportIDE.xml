@@ -39,9 +39,11 @@
           <File BuildType="BUILD" Toolchain="">main.c</File>
           <File BuildType="BUILD" Toolchain="">rtc.c</File>
           <File BuildType="BUILD" Toolchain="">gps.c</File>
+          <File BuildType="BUILD" Toolchain="">display.c</File>
           <File BuildType="BUILD" Toolchain="">cyapicallbacks.h</File>
           <File BuildType="BUILD" Toolchain="">rtc.h</File>
           <File BuildType="BUILD" Toolchain="">gps.h</File>
+          <File BuildType="BUILD" Toolchain="">display.h</File>
         </Files>
       </Folder>
       <Folder BuildType="STRICT" Path="C:\Users\tom94\Documents\PSoC Creator\Panda Raid\Tacometro PSoC4.cydsn\Generated_Source\PSoC4">
@@ -58,6 +60,8 @@
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\cyfitteriar.inc</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\cyfitter.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\cydisabledsheets.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\Clock_1.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\Clock_1.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\cy_em_eeprom.c</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\cy_em_eeprom.h</File>
           <File BuildType="BUILD" Toolchain="ARM GCC Generic">Generated_Source\PSoC4\cm0gcc.ld</File>
@@ -161,10 +165,6 @@
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\BTN.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\BTN_aliases.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\BTN_PM.c</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DISP_MISO.c</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DISP_MISO.h</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DISP_MISO_aliases.h</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DISP_MISO_PM.c</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DISP_MOSI.c</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DISP_MOSI.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DISP_MOSI_aliases.h</File>
@@ -200,6 +200,14 @@
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\SD_PWR.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\SD_PWR_aliases.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\SD_PWR_PM.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\Timer_RPM.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\Timer_RPM.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\Timer_RPM_PM.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\PWM_Bright.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\PWM_Bright.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\PWM_Bright_PM.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\isr_taco.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\isr_taco.h</File>
         </Files>
       </Folder>
       <Folder BuildType="STRICT" Path="C:\Users\tom94\Documents\PSoC Creator\Panda Raid\Tacometro PSoC4.cydsn">

@@ -13,6 +13,7 @@
 #include "FatFs\diskio.h"
 #include "FatFs\ff.h"
 #include "gps.h"
+#include "display.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -27,6 +28,11 @@ uint8 min = 0;
 uint8 seg = 0;
 uint8 seg_d = 0;
 
+volatile uint8 reset_rpm_count = FALSE;
+void read_rpm_in(uint32 * rpm_count);
+uint32 update_rpm(uint32 rpm_count);
+CY_ISR_PROTO(ISR_rpm_counter_tc);
+
 void Test_A();
 void Test_B();
 void FatFsError(FRESULT result);
@@ -34,15 +40,108 @@ void FatFsError(FRESULT result);
 
 int main(void)
 {
+    uint32 rpm_count = 0;
+    
+    uint32 speed = 0;
+    uint32 heading = 0;
+    uint32 rpm = 0;
+    uint8 status = 0;
+    uint8 dir = 0;
+    uint16 bright = 100;
+    uint8 btn_zero = FALSE;
+    uint8 btn_one = FALSE;
+    uint8 prev_btn_zero = FALSE;
+    uint8 prev_btn_one = FALSE;
+    
     CyGlobalIntEnable;
     
+    isr_taco_StartEx(ISR_rpm_counter_tc);
+    
     TERM_Start();
-    GNSS_Start();
+    //GNSS_Start();
+    PWM_Bright_Start();
+    PWM_Bright_WriteCompare(bright);
+    display_init();
+    Timer_RPM_Start();
     
     TERM_PutString("INICIO\n\n");
     
     for(;;)
     {
+        {
+            if (status >= 3)
+            {
+                status = 0;
+            }
+            else
+            {
+                status++;
+            }
+            if (speed < 999) 
+            {
+                speed++;
+            }
+            else 
+            {  
+                speed = 0;
+            }
+            if (heading == 0)
+            {
+                heading = 999;
+            }
+            else
+            {
+                heading--;
+            }
+            if (dir == 0)
+            {
+                if (rpm < 5999)
+                {
+                    rpm += 250;
+                }
+                else
+                {
+                    dir = 1;
+                    rpm -= 250;
+                }
+            }
+            else
+            {
+                if (rpm == 0)
+                {
+                    dir = 0;
+                    rpm += 250;
+                }
+                else
+                {
+                    rpm -= 250;
+                }
+            }
+        }
+        
+        // Update RPM value
+        read_rpm_in(&rpm_count);
+        if (reset_rpm_count)
+        {
+            rpm = update_rpm(rpm_count);
+            reset_rpm_count = FALSE;
+        }
+        //
+        
+        // Buttons reading
+        btn_zero = CyPins_ReadPin(BTN_0);
+        if ((btn_zero != prev_btn_zero) && (btn_zero == FALSE))
+        {
+            bright += 25;
+            if (bright > 100) bright = 0;
+        }
+        prev_btn_zero = btn_zero;
+        //
+        
+        PWM_Bright_WriteCompare(bright);
+        display_update(speed, heading, rpm, status);
+        CyDelay(200);
+        /*
         while(GNSS_SpiUartGetRxBufferSize() > 0)
         {
             char c = GNSS_UartGetChar();
@@ -56,7 +155,40 @@ int main(void)
                 TERM_PutString(aux);
             }
         }
+        */
     }
+}
+
+void read_rpm_in(uint32 * rpm_count)
+{
+    static uint8 prev_val = TRUE;   // Pull-up input
+    uint8 curr_val = CyPins_ReadPin(RPM_IN_0);
+    
+    if ((curr_val != prev_val) && (curr_val == FALSE))
+    {
+        rpm_count++;
+    }
+    prev_val = curr_val;
+}
+
+uint32 update_rpm(uint32 rpm_count)
+{
+    /* NOTE: Need to define the relation between alternator and engine*/
+    // 'rpm_count' contains the number activations registered on the
+    // pin 'RPM_IN' in 0.1 seconds. Multiply by 600 to obtain the 
+    // value for minutes (RPM). But each revolution of the alternator
+    // register 6 activations so divide by 6. Final multiplication 
+    // factor is 100.
+    uint32 val = rpm_count * 100;
+    rpm_count = 0;
+    
+    return val;
+}
+
+CY_ISR(ISR_rpm_counter_tc)
+{
+    Timer_RPM_ClearInterrupt(Timer_RPM_INTR_MASK_TC);
+    reset_rpm_count = TRUE;    
 }
 /*
 void Test_B()
