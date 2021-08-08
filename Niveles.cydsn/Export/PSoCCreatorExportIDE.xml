@@ -129,14 +129,6 @@
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\Term_SPI_UART_PVT.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\Term_PVT.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\Term_BOOT.h</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DIS_RED.c</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DIS_RED.h</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DIS_RED_aliases.h</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DIS_RED_PM.c</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DIS_GREEN.c</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DIS_GREEN.h</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DIS_GREEN_aliases.h</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DIS_GREEN_PM.c</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\SPI_IntClock.c</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\SPI_IntClock.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\Term_SCBCLK.c</File>
@@ -145,10 +137,30 @@
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\Term_tx.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\Term_tx_aliases.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\Term_tx_PM.c</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\Term_rx.c</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\Term_rx.h</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\Term_rx_aliases.h</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\Term_rx_PM.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DIS_R.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DIS_R.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DIS_R_aliases.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DIS_R_PM.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DIS_G.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DIS_G.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DIS_G_aliases.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\DIS_G_PM.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\BTN.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\BTN.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\BTN_aliases.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\BTN_PM.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\OE.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\OE.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\OE_aliases.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\OE_PM.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\T_FLAG.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\T_FLAG.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\T_FLAG_aliases.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\T_FLAG_PM.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\LOAD.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\LOAD.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\LOAD_aliases.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\LOAD_PM.c</File>
         </Files>
       </Folder>
       <Folder BuildType="EXCLUDE" Path=".\codegentemp">

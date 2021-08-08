@@ -23,20 +23,12 @@
 #define MILLIS 0;
 #define CR 0x0D //ASCII for Carriage Return
 
-uint8 hora = 0;
-uint8 min = 0;
-uint8 seg = 0;
-uint8 seg_d = 0;
+gps_data_t nav_data;
 
 volatile uint8 reset_rpm_count = FALSE;
 void read_rpm_in(uint32 * rpm_count);
 uint32 update_rpm(uint32 rpm_count);
 CY_ISR_PROTO(ISR_rpm_counter_tc);
-
-void Test_A();
-void Test_B();
-void FatFsError(FRESULT result);
-
 
 int main(void)
 {
@@ -47,27 +39,59 @@ int main(void)
     uint32 rpm = 0;
     uint8 status = 0;
     uint8 dir = 0;
-    uint16 bright = 100;
+    uint16 bright = 50;
     uint8 btn_zero = FALSE;
     uint8 btn_one = FALSE;
     uint8 prev_btn_zero = FALSE;
     uint8 prev_btn_one = FALSE;
+    
+    uint8_t poll_port_config[9] = {0xB5, 0x62, 0x06, 0x00, 0x01, 0x00, 0x01, 0x08, 0x22};
+    uint8_t port_config[28] = {0xB5, 0x62, 0x06, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0xD0, 0x08, 0x00, 0x00,
+                               0x00, 0x96, 0x00, 0x00, 0x07, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x93, 0x90}; // Sets baud rate to 38400
+    
+    uint8_t no_gll[16] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2A}; // No GLL
+    uint8_t no_gsa[16] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x31}; // No GSA
+    uint8_t no_gsv[16] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x38}; // No GSV
+    uint8_t no_vtg[16] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x46}; // No VTG
+    
+    uint8_t fix_rate[14] = {0xB5, 0x62, 0x06, 0x08, 0x06, 0x00, 0x64, 0x00, 0x01, 0x00, 0x01, 0x00, 0x7A, 0x12}; // Sets the update rate to 10Hz
+    
+    //TODO configuracion SBAS
     
     CyGlobalIntEnable;
     
     isr_taco_StartEx(ISR_rpm_counter_tc);
     
     TERM_Start();
-    //GNSS_Start();
+    //CLK_UART_GNSS_Start();
+    GNSS_Start();
+    CyDelay(200);
+    GNSS_SpiUartPutArray(no_gll, 16);
+    CyDelay(200);
+    GNSS_SpiUartPutArray(no_gsa, 16);
+    CyDelay(200);
+    GNSS_SpiUartPutArray(no_gsv, 16);
+    CyDelay(200);
+    GNSS_SpiUartPutArray(no_vtg, 16);
+    CyDelay(200);
+    
+    
     PWM_Bright_Start();
     PWM_Bright_WriteCompare(bright);
     display_init();
     Timer_RPM_Start();
     
     TERM_PutString("INICIO\n\n");
-    
+    /*
+    GNSS_SpiUartPutArray(port_config, 28);
+    CyDelay(200);
+    CLK_UART_GNSS_SetDividerValue(52);
+    CyDelay(200);
+    GNSS_SpiUartPutArray(fix_rate, 14);
+    */
     for(;;)
     {
+        /*
         {
             if (status >= 3)
             {
@@ -118,7 +142,7 @@ int main(void)
                 }
             }
         }
-        
+        */
         // Update RPM value
         read_rpm_in(&rpm_count);
         if (reset_rpm_count)
@@ -139,23 +163,46 @@ int main(void)
         //
         
         PWM_Bright_WriteCompare(bright);
-        display_update(speed, heading, rpm, status);
-        CyDelay(200);
-        /*
+        //display_update(speed, heading, rpm, status);
+        //CyDelay(200);
+        
         while(GNSS_SpiUartGetRxBufferSize() > 0)
         {
             char c = GNSS_UartGetChar();
             TERM_PutChar(c);
-            
+            gps_receiveData(c);
+            /*
             if(gps_receiveData(c) != 0)
             {
                 gps_getTime(&hora, &min, &seg, &seg_d);
                 char aux[30];
                 sprintf(aux, "\n%02d:%02d:%02d.%02d\n", hora, min, seg, seg_d);
                 TERM_PutString(aux);
+                gps_getPosition(&lat_dg, &lat_min, &lat_min_d, &lon_dg, &lon_min, &lon_min_d);
+                sprintf(aux, "%d\260%d.%ld'N  %d\260%d.%ld'W\n", lat_dg, lat_min, lat_min_d, lon_dg, lon_min, lon_min_d);
+                TERM_PutString(aux);
             }
+            */
         }
-        */
+        
+        if (gps_getData(&nav_data))
+        {
+            char aux[50];
+            sprintf(aux, "\n%02d:%02d:%02d - %02d/%02d/%02d\n", nav_data.timestamp.hour, nav_data.timestamp.min, nav_data.timestamp.sec,
+                                                                nav_data.timestamp.day, nav_data.timestamp.month, nav_data.timestamp.year);
+            TERM_PutString(aux);
+            sprintf(aux, "%d\260%lu.%05lu'N %d\260%lu.%05lu'W\n", nav_data.latitude_dg, nav_data.latitude_min/100000, nav_data.latitude_min%100000,
+                                                              nav_data.longitude_dg, nav_data.longitude_min/100000, nav_data.longitude_min%100000);
+            TERM_PutString(aux);
+            uint32 speed_kmh =  KNOTS_TO_KMH(nav_data.speed);
+            sprintf(aux, "%lu.%03luknots - %lu.%03luKm/h\n", nav_data.speed/1000, nav_data.speed%1000, speed_kmh/1000, speed_kmh%1000);
+            TERM_PutString(aux);
+            sprintf(aux, "Course: %lu.%02lu\260\n", nav_data.course/100, nav_data.course%100);
+            TERM_PutString(aux);
+            
+            display_update(speed_kmh%1000, nav_data.course/100, rpm, status);
+        }
+        
     }
 }
 
@@ -190,149 +237,5 @@ CY_ISR(ISR_rpm_counter_tc)
     Timer_RPM_ClearInterrupt(Timer_RPM_INTR_MASK_TC);
     reset_rpm_count = TRUE;    
 }
-/*
-void Test_B()
-{
-    FATFS fatFs;
-    FIL pfile;
-    uint8 resultF;
-    
-    resultF = f_mount(&fatFs, "", 1);
-    
-    if (resultF == RES_OK)
-    {
-        resultF = f_open(&pfile, "testbin.txt", FA_WRITE | FA_CREATE_ALWAYS);
-        
-        if (resultF == FR_OK)
-        {
-            TERM_UartPutString("Archivo creado.\nIniciando prueba de rendimiento en modo binario.\n");
-            TERM_UartPutString("Fase 1. 2000 escrituras individuales de int32\n");
-            
-            uint32 init_time = MILLIS;
-            for (uint16 i = 0; i < 2000; i++)
-            {
-                int32 num = random();
-                unsigned int n_write = 0;
-                //FS_FWrite(&num, sizeof(num), 1, pfile);
-                resultF = f_write(&pfile, &num, 4, &n_write);
-                FatFsError(resultF);
-            }
-            uint32 end_time = MILLIS;
-            
-            uint32 total_time = end_time - init_time;
-            uint32 mean_time = (end_time - init_time)/2000;
-            char aux[100];
-            sprintf(aux, "Fin Fase 1.\nTiempo total de escritura: %lu ms\nTiempo medio de cada escritura: %lu ms\n", total_time, mean_time);
-            TERM_UartPutString(aux);
-            
-            
-            TERM_UartPutString("Fase 2. 10 escrituras 200 int32\n");
-            int32 num_buffer[200];
-            init_time = MILLIS;
-            for (uint8 i = 0; i < 10; i++)
-            {
-                for (uint8 i = 0; i < 200; i++)
-                {
-                    num_buffer[i] = random();
-                }
-                unsigned int n_write = 0;
-                //FS_FWrite(num_buffer, sizeof(int32), 200, pfile);
-                resultF = f_write(&pfile, num_buffer, 4*200, &n_write);
-                FatFsError(resultF);
-            }
-            end_time = MILLIS;
-            
-            total_time = end_time - init_time;
-            mean_time = (end_time - init_time)/10;
-            sprintf(aux, "Fin Fase 2.\nTiempo total de escritura: %lu ms\nTiempo medio de cada escritura: %lu ms\n", total_time, mean_time);
-            TERM_UartPutString(aux);
-            
-            if (FR_OK == f_close(&pfile))
-            {
-                TERM_UartPutString("Archivo cerrado\n");
-            }
-            else
-            {
-                FatFsError(resultF);
-            }
-            
-        }
-        else
-        {
-            FatFsError(resultF);
-        }
-    }
-    else
-    {
-        FatFsError(resultF);
-    }
-}
 
-void FatFsError(FRESULT result)
-{
-    
-    switch (result)
-    {
-        case FR_DISK_ERR:
-            TERM_UartPutString("\n    error: (FR_DISK_ERR) low level error.\n"); break;
-            
-        case FR_INT_ERR:
-            TERM_UartPutString("\n    error: (FR_INT_ERR)\n"); break; 
-            
-        case FR_NOT_READY:
-            TERM_UartPutString("\n    error: (FR_NOT_READY) sdcard not ready.\n"); break;
-            
-        case FR_NO_FILE:
-            TERM_UartPutString("\n    error: (FR_NO_FILE) invalid file.\n"); break;
-            
-        case FR_NO_PATH:
-            TERM_UartPutString("\n    error: (FR_NO_PATH) invalid path.\n"); break;
-            
-        case FR_INVALID_NAME:
-            TERM_UartPutString("\n    error: (FR_INVALID_NAME) invalid name.\n"); break;
-            
-        case FR_DENIED:
-            TERM_UartPutString("\n    error: (FR_DENIED) operation denied.\n"); break;
-            
-        case FR_EXIST:
-            TERM_UartPutString("\n    error: (FR_EXIST) it exists yet...\n"); break;
-            
-        case FR_INVALID_OBJECT:
-            TERM_UartPutString("\n    error: (FR_INVALID_OBJECT)\n"); break;
-            
-        case FR_WRITE_PROTECTED:
-            TERM_UartPutString("\n    error: (FR_WRITE_PROTECTED)\n"); break;
-            
-        case FR_INVALID_DRIVE:
-            TERM_UartPutString("\n    error: (FR_INVALID_DRIVE)\n"); break;
-            
-        case FR_NOT_ENABLED:
-            TERM_UartPutString("\n    error: (FR_NOT_ENABLED) sdcard unmounted.\n"); break;
-            
-        case FR_NO_FILESYSTEM:
-            TERM_UartPutString("\n    error: (FR_NO_FILESYSTEM) no valid FAT volume.\n"); break;  
-            
-        case FR_MKFS_ABORTED:
-            TERM_UartPutString("\n    error: (FR_MKFS_ABORTED)\n"); break;
-            
-        case FR_TIMEOUT:
-            TERM_UartPutString("\n    error: (FR_TIMEOUT)\n"); break;
-            
-        case FR_LOCKED:
-            TERM_UartPutString("\n    error: (FR_LOCKED)\n"); break;
-            
-        case FR_NOT_ENOUGH_CORE:
-            TERM_UartPutString("\n    error: (FR_NOT_ENOUGH_CORE)\n"); break;     
-            
-        case FR_TOO_MANY_OPEN_FILES:
-            TERM_UartPutString("\n    error: (FR_TOO_MANY_OPEN_FILES)\n"); break;
-            
-        case FR_INVALID_PARAMETER:
-            TERM_UartPutString("\n    error: (FR_INVALID_PARAMETER)\n"); break; 
-            
-        default: {}; break;
-    }
-}
-*/
 /* [] END OF FILE */
-

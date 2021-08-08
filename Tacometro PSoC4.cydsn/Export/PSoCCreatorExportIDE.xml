@@ -151,8 +151,6 @@
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\GNSS_SPI_UART_PVT.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\GNSS_PVT.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\GNSS_BOOT.h</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\GNSS_SCBCLK.c</File>
-          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\GNSS_SCBCLK.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\GNSS_tx.c</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\GNSS_tx.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\GNSS_tx_aliases.h</File>
@@ -208,6 +206,8 @@
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\PWM_Bright_PM.c</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\isr_taco.c</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\isr_taco.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\CLK_UART_GNSS.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC4\CLK_UART_GNSS.h</File>
         </Files>
       </Folder>
       <Folder BuildType="STRICT" Path="C:\Users\tom94\Documents\PSoC Creator\Panda Raid\Tacometro PSoC4.cydsn">
