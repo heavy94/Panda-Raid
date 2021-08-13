@@ -34,6 +34,7 @@ int main(void)
 {
     uint32 rpm_count = 0;
     
+    uint8 new_gps_data = FALSE;
     uint32 speed = 0;
     uint32 heading = 0;
     uint32 rpm = 0;
@@ -79,6 +80,8 @@ int main(void)
     PWM_Bright_Start();
     PWM_Bright_WriteCompare(bright);
     display_init();
+    display_test();
+    CyDelay(2000);
     Timer_RPM_Start();
     
     TERM_PutString("INICIO\n\n");
@@ -170,7 +173,7 @@ int main(void)
         {
             char c = GNSS_UartGetChar();
             TERM_PutChar(c);
-            gps_receiveData(c);
+            new_gps_data = gps_receiveData(c);
             /*
             if(gps_receiveData(c) != 0)
             {
@@ -185,8 +188,9 @@ int main(void)
             */
         }
         
-        if (gps_getData(&nav_data))
+        if (new_gps_data)
         {
+            gps_getData(&nav_data);
             char aux[50];
             sprintf(aux, "\n%02d:%02d:%02d - %02d/%02d/%02d\n", nav_data.timestamp.hour, nav_data.timestamp.min, nav_data.timestamp.sec,
                                                                 nav_data.timestamp.day, nav_data.timestamp.month, nav_data.timestamp.year);
@@ -195,12 +199,24 @@ int main(void)
                                                               nav_data.longitude_dg, nav_data.longitude_min/100000, nav_data.longitude_min%100000);
             TERM_PutString(aux);
             uint32 speed_kmh =  KNOTS_TO_KMH(nav_data.speed);
-            sprintf(aux, "%lu.%03luknots - %lu.%03luKm/h\n", nav_data.speed/1000, nav_data.speed%1000, speed_kmh/1000, speed_kmh%1000);
+            sprintf(aux, "Speed: %lu.%03luknots - %lu.%03luKm/h\n", nav_data.speed/1000, nav_data.speed%1000, speed_kmh/1000, speed_kmh%1000);
             TERM_PutString(aux);
             sprintf(aux, "Course: %lu.%02lu\260\n", nav_data.course/100, nav_data.course%100);
             TERM_PutString(aux);
+            sprintf(aux, "Altitude: %lu.%01lum - Geoid: %lu.%01lum\n", nav_data.altitude/10, nav_data.altitude%10, nav_data.geoid/10, nav_data.geoid%10);
+            TERM_PutString(aux);
+            sprintf(aux, "HDOP: %lu.%02lu - Satellites: %u\n\n", nav_data.hdop/100, nav_data.hdop%100, nav_data.n_sat);
+            TERM_PutString(aux);
             
-            display_update(speed_kmh%1000, nav_data.course/100, rpm, status);
+            switch(gps_getQuality())
+            {
+                case 0: status = 2; break;
+                case 1: status = 3; break;
+                case 2: status = 1; break;
+                default: {}
+            }
+            
+            display_update(speed_kmh/1000, nav_data.course/100, 250*nav_data.n_sat, status);
         }
         
     }

@@ -4,6 +4,8 @@
 
 #include "display.h"
 
+#define DIGIT_OFF 99
+
 //Private functions declaration
 void to_7seg(uint32 val, uint8 * seg);
 
@@ -16,7 +18,7 @@ void display_init()
 
 void display_test()
 {
-    display_update(999,999,5999,2);
+    display_update(999,999,6000,2);
 }
 
 void display_update(uint32 speed, uint32 heading, uint32 rpm, uint8 status)
@@ -28,15 +30,22 @@ void display_update(uint32 speed, uint32 heading, uint32 rpm, uint8 status)
     uint32 seg_rpm = 0; //Rightmost value represents de first LED
  
     //Divide speed in individual digits
+    if (speed >= 1000) speed = 999; // Cap speed value to three digits 
     uint32 speed_cen = speed / 100;
+    if (speed_cen == 0) speed_cen = DIGIT_OFF;
     uint32 speed_ten = (speed % 100) / 10;
+    if (speed_ten == 0) speed_ten = DIGIT_OFF;
     uint32 speed_uni = speed % 10;
+    if (heading >= 1000) heading = 999; // Cap heading value to three digits 
     //Divide heading in individual digits
     uint32 heading_cen = heading / 100;
+    if (heading_cen == 0) heading_cen = DIGIT_OFF;
     uint32 heading_ten = (heading % 100) / 10;
+    if (heading_ten == 0) heading_ten = DIGIT_OFF;
     uint32 heading_uni = heading % 10;
     //Map rpm to number of LEDs
     uint32 rpm_led = rpm / 250;
+    if (rpm_led > 24) rpm_led = 24; // Cap rpm value to 24 leds
     
     //If the value of status is unbounded default to 0. Possible values are:
     // 0 -> off, 1 -> green, 2 -> red, 3 -> yellow
