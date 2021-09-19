@@ -9,13 +9,17 @@
  *
  * ========================================
 */
-#ifndef RTC_H
-#define RTC_H	
+#ifndef DATALOGGER_H
+#define DATALOGGER_H
     
-#include "gps.h"
+#include "project.h"
+#include "rtc.h"
+    
+uint8 dataloggerStart();
+void dataloggerStop();
+void dataloggerSaveData(gps_data_t data);
+uint8 dataloggerGetStatus();
+    
+#endif
 
-void rtcUpdate(gps_timestamp_t timestamp);
-gps_timestamp_t rtcGetTimestamp();
-    
-#endif    
 /* [] END OF FILE */

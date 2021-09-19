@@ -9,13 +9,19 @@
  *
  * ========================================
 */
-#ifndef RTC_H
-#define RTC_H	
+#ifndef BUTTONS_H
+#define BUTTONS_H
     
-#include "gps.h"
+#include "project.h"
+    
+void initButtons(uint16_t refresh_rate);
+void updateButtons();
 
-void rtcUpdate(gps_timestamp_t timestamp);
-gps_timestamp_t rtcGetTimestamp();
+uint8_t getButtonShort_0();
+uint8_t getButtonShort_1();
+
+uint8_t getButtonLong_0();
+uint8_t getButtonLong_1();
     
-#endif    
+#endif
 /* [] END OF FILE */

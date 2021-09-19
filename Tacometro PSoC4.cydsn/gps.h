@@ -33,6 +33,13 @@
 #define INVALID_HDOP        ((uint32)0xFFFFFFFF)
 #define INVALID_SATELLITES  ((uint8)0xFF)
     
+#define LAT_MIN_DIVIDER     100000
+#define LON_MIN_DIVIDER     100000
+#define SPEED_DIVIDER       1000
+#define COURSE_DIVIDER      100
+#define ALTITUDE_DIVIDER    10
+#define HDOP_DIVIDER        100
+    
 #define GPS_QUALITY_BAD     0
 #define GPS_QUALITY_POOR    1
 #define GPS_QUALITY_GOOD    2

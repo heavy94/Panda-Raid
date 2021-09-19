@@ -9,6 +9,7 @@
 *.pdf
 *.rpt
 */ComponentUpdateLog.txt
+*/CLEAN.log
 */BUILD.log
 */REBUILD.log
 */GENERATE_API.log

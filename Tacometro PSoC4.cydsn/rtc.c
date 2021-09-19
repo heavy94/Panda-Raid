@@ -9,30 +9,28 @@
  *
  * ========================================
 */
-#include <project.h>
+#include "project.h"
 #include "rtc.h"
 #include "FatFs\diskio.h"
 #include "FatFs\ff.h"
 
-/*---------------------------------------------------------*/
-/* User Provided RTC Function for FatFs module             */
-/*---------------------------------------------------------*/
-/* This is a real time clock service to be called from     */
-/* FatFs module. Any valid time must be returned even if   */
-/* the system does not support an RTC.                     */
-/* This function is not required in read-only cfg.         */
+gps_timestamp_t rtc;
 
-const unsigned long rtcYear = 2015;
-const unsigned long rtcMonth = 10;
-const unsigned long rtcDay = 16;
-const unsigned long rtcHour = 10;
-const unsigned long rtcMinutes = 32;
-const unsigned long rtcSeconds = 0;
+void rtcUpdate(gps_timestamp_t timestamp)
+{
+    rtc = timestamp;
+}
 
+gps_timestamp_t rtcGetTimestamp()
+{
+    return rtc;
+}
+
+// Function needed by FatFs library
 DWORD get_fattime()
 {
 	/* Pack date and time into a DWORD variable */
-	return (((DWORD)rtcYear - 1980) << 25) | ((DWORD)rtcMonth << 21) | ((DWORD)rtcDay << 16)| (WORD)(rtcHour << 11)| 
-            (WORD)(rtcMinutes << 5)	| (WORD)(rtcSeconds >> 1);;
+	return (((DWORD)rtc.year + 20) << 25) | ((DWORD)rtc.month << 21) | ((DWORD)rtc.day << 16) | 
+             (WORD)(rtc.hour << 11) | (WORD)(rtc.min << 5) | (WORD)(rtc.sec >> 1);
 }
 /* [] END OF FILE */
