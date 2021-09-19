@@ -62,7 +62,7 @@ typedef struct
     uint32  latitude_min;   // x100000  //RMC
     int16   longitude_dg;               //RMC
     uint32  longitude_min;  // x100000  //RMC
-    uint32  speed;          // x1000    //RMC
+    uint32  speed;          // x1000    //RMC   // in km/h
     uint32  course;         // x1000    //RMC
     uint32  altitude;       // x10      //GGA
     uint32  geoid;          // x10      //GGA
@@ -73,9 +73,10 @@ typedef struct
     
 
 //Public functions
-uint8 gps_receiveData(char c);
-void gps_getData(gps_data_t * data);
+void gps_receiveData(char c);
+void gps_getData(volatile gps_data_t * data);
 uint8 gps_getQuality();
+uint8 gps_newDataAvailable();
 
 #endif
 /* [] END OF FILE */

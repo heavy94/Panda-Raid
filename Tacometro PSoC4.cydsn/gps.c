@@ -15,13 +15,13 @@
    
 gps_timestamp_t last_fix_timestamp;
 gps_data_t gps_data;
-uint8 new_data = 0;
 
 char buf_input[100] = "";
 uint8 buf_index = 0;
 uint8 cksm_pos = 0;
 uint8 computed_cksm = 0; //Checksum is a XOR of all characters between, but not including, '$' and '*'.
 uint8 new_sentence = FALSE;
+uint8 new_msg_set = FALSE;
 
 //Private functions declaration
 uint8 parseSentence();
@@ -39,11 +39,8 @@ uint8 from_hex(char a);
 
 //Public functions definition
 // Receive incoming data from the gps. 
-// Returns TRUE if a full set of available NMEA messages (with the same Fix time) has been decoded.
-uint8 gps_receiveData(char c)
+void gps_receiveData(char c)
 {
-    uint8 new_msg_set = FALSE;
-    
     switch(c)
     {
         case '$':
@@ -93,11 +90,9 @@ uint8 gps_receiveData(char c)
             break;
         }
     }
-    
-    return new_msg_set;
 }
 
-void gps_getData(gps_data_t * data)
+void gps_getData(volatile gps_data_t * data)
 {
     *data = gps_data;
 }
@@ -113,6 +108,20 @@ uint8 gps_getQuality()
         {
             ret_val = GPS_QUALITY_GOOD;
         }
+    }
+    
+    return ret_val;
+}
+
+// Returns TRUE if a neew full set of available NMEA messages (with the same Fix time) has been decoded.
+uint8 gps_newDataAvailable()
+{
+    uint8 ret_val = FALSE;
+    
+    if (new_msg_set)
+    {
+        ret_val = TRUE;
+        new_msg_set = FALSE;
     }
     
     return ret_val;
@@ -278,7 +287,7 @@ char* parseSpeed(char * p_begin)
         uint32 speed_knots = (uint32)atoi(p_begin);
         p_begin = strpbrk(p_begin + 1, ".") + 1;
         speed_knots = speed_knots * 1000 + (uint32)atoi(p_begin);
-        gps_data.speed = speed_knots;
+        gps_data.speed = KNOTS_TO_KMH(speed_knots);
     }
     else
     {

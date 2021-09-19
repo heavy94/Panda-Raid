@@ -24,8 +24,11 @@
 #define CR 0x0D //ASCII for Carriage Return
 #define REFRESH_RATE_BUTTONS 100 //ms
 
-gps_data_t nav_data;
+volatile gps_data_t nav_data;
 uint8 prev_timestamp_sec;
+
+// GNSS receive and parse
+CY_ISR_PROTO(ISR_gnss_new_byte);
 
 // RPM counter
 CY_ISR_PROTO(ISR_rpm_counter_tc);
@@ -41,7 +44,6 @@ int main(void)
     uint32 rpm_count = 0;
     uint32 rpm = 0;
     
-    uint8 new_gps_data = FALSE;
     uint8 status = 0;
     uint16 bright = 60;
     
@@ -60,12 +62,10 @@ int main(void)
     
     CyGlobalIntEnable;
     
-    Timer_RPM_Start();
-    isr_taco_StartEx(ISR_rpm_counter_tc);
-    ISR_millis_StartEx(ISR_millis);
-    
     TERM_Start();
-    //CLK_UART_GNSS_Start();
+    TERM_PutString("INICIO\n\n");
+    
+    // Start and configure GNSS receiver
     GNSS_Start();
     CyDelay(200);
     GNSS_SpiUartPutArray(no_gll, 16);
@@ -76,23 +76,25 @@ int main(void)
     CyDelay(200);
     GNSS_SpiUartPutArray(no_vtg, 16);
     CyDelay(200);
-    
-    
-    PWM_Bright_Start();
-    PWM_Bright_WriteCompare(bright);
-    display_init();
-    display_test();
-    CyDelay(2000);
-    
-    initButtons(REFRESH_RATE_BUTTONS);
-    
-    TERM_PutString("INICIO\n\n");
-    
     GNSS_SpiUartPutArray(port_config, 28);
     CyDelay(200);
     CLK_UART_GNSS_SetDividerValue(52);
     CyDelay(200);
     GNSS_SpiUartPutArray(fix_rate, 14);
+    // Other system initialization
+    PWM_Bright_Start();
+    PWM_Bright_WriteCompare(bright);
+    display_init();
+    display_test();
+    CyDelay(2000);
+    initButtons(REFRESH_RATE_BUTTONS);
+    // Enable tachometer interrupt
+    Timer_RPM_Start();
+    isr_taco_StartEx(ISR_rpm_counter_tc);
+    ISR_millis_StartEx(ISR_millis);
+    // Enable GNSS UART interrupt to parse data
+    GNSS_SpiUartClearRxBuffer();
+    ISR_gnss_rx_StartEx(ISR_gnss_new_byte);
     
     for(;;)
     {        
@@ -127,67 +129,19 @@ int main(void)
                     dataloggerStop();
                 }
             }
-            
-            display_update(85, 125, update_rpm(), status);
         }
-        //
         
-        // Read and parse GPS data
-        while((GNSS_SpiUartGetRxBufferSize() > 0) && (new_gps_data == 0))
+        // Data saving
+        if ((dataloggerGetStatus() == 1) && (nav_data.timestamp.sec != prev_timestamp_sec))
         {
-            char c = GNSS_UartGetChar();
-            //TERM_PutChar(c);
-            new_gps_data = gps_receiveData(c);
-        }
-        
-        
-        // If new GPS data update display
-        if (new_gps_data)
-        {
-            gps_getData(&nav_data);
-            new_gps_data = 0;
-            rtcUpdate(nav_data.timestamp);
-            uint32 speed_kmh =  KNOTS_TO_KMH(nav_data.speed);
-            
-            char aux[50];
-            sprintf(aux, "%02d:%02d:%02d.%02d - %02d/%02d/%02d\n", nav_data.timestamp.hour, nav_data.timestamp.min, nav_data.timestamp.sec, nav_data.timestamp.sec_cent,
-                                                                   nav_data.timestamp.day, nav_data.timestamp.month, nav_data.timestamp.year);
-            TERM_PutString(aux);
-            /*
-            sprintf(aux, "%d\260%lu.%05lu'N %d\260%lu.%05lu'W\n", nav_data.latitude_dg, nav_data.latitude_min/LAT_MIN_DIVIDER, nav_data.latitude_min%LAT_MIN_DIVIDER,
-                                                              nav_data.longitude_dg, nav_data.longitude_min/LON_MIN_DIVIDER, nav_data.longitude_min%LON_MIN_DIVIDER);
-            TERM_PutString(aux);
-            sprintf(aux, "Speed: %lu.%03luknots - %lu.%03luKm/h\n", nav_data.speed/SPEED_DIVIDER, nav_data.speed%SPEED_DIVIDER, speed_kmh/SPEED_DIVIDER, speed_kmh%SPEED_DIVIDER);
-            TERM_PutString(aux);
-            sprintf(aux, "Course: %lu.%02lu\260\n", nav_data.course/COURSE_DIVIDER, nav_data.course%COURSE_DIVIDER);
-            TERM_PutString(aux);
-            sprintf(aux, "Altitude: %lu.%01lum - Geoid: %lu.%01lum\n", nav_data.altitude/ALTITUDE_DIVIDER, nav_data.altitude%ALTITUDE_DIVIDER, nav_data.geoid/ALTITUDE_DIVIDER, nav_data.geoid%ALTITUDE_DIVIDER);
-            TERM_PutString(aux);
-            sprintf(aux, "HDOP: %lu.%02lu - Satellites: %u\n\n", nav_data.hdop/HDOP_DIVIDER, nav_data.hdop%HDOP_DIVIDER, nav_data.n_sat);
-            TERM_PutString(aux);
-            */
-            if ((dataloggerGetStatus() == 1) && (nav_data.timestamp.sec != prev_timestamp_sec))
-            {
-                prev_timestamp_sec = nav_data.timestamp.sec;
-                uint64 interval = getMillis();
-                dataloggerSaveData(nav_data);
-                interval = getMillis() - interval;
-                char buff[20];
-                sprintf(buff, "SAVE -> %4lums -> ", (uint32)interval);
-                TERM_PutString(buff);
-            }
-            
-            switch(gps_getQuality())
-            {
-                case 0: status = 2; break;
-                case 1: status = 3; break;
-                case 2: status = 1; break;
-                default: {}
-            }
-            
-            display_update(nav_data.speed/100, nav_data.course/100, update_rpm(), status);
-        }
-        
+            prev_timestamp_sec = nav_data.timestamp.sec;
+            uint64 interval = getMillis();
+            dataloggerSaveData(nav_data);
+            interval = getMillis() - interval;
+            char buff[20];
+            sprintf(buff, "SAVE -> %4lums -> ", (uint32)interval);
+            TERM_PutString(buff);
+        }       
     }
 }
 
@@ -201,39 +155,62 @@ uint32 update_rpm()
     uint32 aux_val = Timer_RPM_ReadCaptureBuf();
     if (aux_val > 10000)
     {
-        TERM_PutString("timer stoped\n");
+        //TERM_PutString("timer stoped\n");
         ret_val = 0;
     }
     else
     {
         ret_val = 1000000 / aux_val;
-        char buf[20];
-        sprintf(buf, "aux_val: %lu\n", ret_val);
-        TERM_PutString(buf);
+        //char buf[20];
+        //sprintf(buf, "aux_val: %lu\n", ret_val);
+        //TERM_PutString(buf);
     }
     return ret_val;
+}
+
+uint64 getMillis()
+{
+    return millis_count;
+}
+
+CY_ISR(ISR_gnss_new_byte)
+{
+    char c = GNSS_UartGetChar();
+    //TERM_PutChar(c);
+    gps_receiveData(c);
 }
 
 CY_ISR(ISR_rpm_counter_tc)
 {  
     uint32 isr_type = Timer_RPM_GetInterruptSource();
     Timer_RPM_ClearInterrupt(isr_type);
-    
-    if (/*isr_type == Timer_RPM_INTR_MASK_CC_MATCH*/1)
-    {
-        Timer_RPM_TriggerCommand(Timer_RPM_MASK, Timer_RPM_CMD_RELOAD);
-    }
+    Timer_RPM_TriggerCommand(Timer_RPM_MASK, Timer_RPM_CMD_RELOAD);
 }
 
 CY_ISR(ISR_millis)
 {
     PWM_Bright_ClearInterrupt(PWM_Bright_INTR_MASK_TC);
     millis_count++;
-}
-
-uint64 getMillis()
-{
-    return millis_count;
+     
+    if (millis_count % 50) // Each 50ms
+    {
+        // Check for new GPS data
+        if (gps_newDataAvailable())
+        {
+            gps_getData(&nav_data);
+            rtcUpdate(nav_data.timestamp);
+            /*
+            switch(gps_getQuality())
+            {
+                case 0: status = 2; break;
+                case 1: status = 3; break;
+                case 2: status = 1; break;
+                default: {}
+            }*/
+        }
+        // Refresh display
+        display_update(nav_data.speed/100, nav_data.course/100, update_rpm(), 3);
+    }
 }
 
 /* [] END OF FILE */

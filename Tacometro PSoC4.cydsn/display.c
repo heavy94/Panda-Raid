@@ -107,6 +107,7 @@ void display_update(uint32 speed, uint32 heading, uint32 rpm, uint8 status)
     //CyPins_SetPin(OE_0);
     //CyPins_SetPin(OE_1);
     //CyPins_SetPin(OE_2);
+    CyPins_SetPin(DISP_LOAD_0);
     
     DISP_SPI_WriteTxData(tx_array[8]);
     DISP_SPI_WriteTxData(tx_array[7]);
@@ -120,9 +121,6 @@ void display_update(uint32 speed, uint32 heading, uint32 rpm, uint8 status)
     DISP_SPI_WriteTxData(tx_array[1]);
     DISP_SPI_WriteTxData(tx_array[0]);
     
-    CyDelayUs(50);
-    CyPins_SetPin(DISP_LOAD_0);
-    CyDelayUs(50);
     CyPins_ClearPin(DISP_LOAD_0);
     
     //CyPins_ClearPin(OE_0);
