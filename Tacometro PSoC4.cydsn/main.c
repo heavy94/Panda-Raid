@@ -28,6 +28,7 @@ gps_data_t nav_data;
 uint8 prev_timestamp_sec;
 
 // RPM counter
+volatile uint32 rpm_counter_value = 0;
 CY_ISR_PROTO(ISR_rpm_counter_tc);
 uint32 update_rpm();
 
@@ -185,7 +186,7 @@ int main(void)
                 default: {}
             }
             
-            display_update(nav_data.speed/100, nav_data.course/100, update_rpm(), status);
+            display_update(nav_data.speed/100, nav_data.hdop, update_rpm(), status);
         }
         
     }
@@ -198,19 +199,11 @@ uint32 update_rpm()
     /* Timer_RPM counts the duration between 
     
     */
-    uint32 aux_val = Timer_RPM_ReadCaptureBuf();
-    if (aux_val > 10000)
-    {
-        TERM_PutString("timer stoped\n");
-        ret_val = 0;
-    }
-    else
-    {
-        ret_val = 1000000 / aux_val;
-        char buf[20];
-        sprintf(buf, "aux_val: %lu\n", ret_val);
-        TERM_PutString(buf);
-    }
+    ret_val = 1000000 / rpm_counter_value;
+    char buf[20];
+    sprintf(buf, "aux_val: %lu\n", ret_val);
+    TERM_PutString(buf);
+
     return ret_val;
 }
 
@@ -218,10 +211,15 @@ CY_ISR(ISR_rpm_counter_tc)
 {  
     uint32 isr_type = Timer_RPM_GetInterruptSource();
     Timer_RPM_ClearInterrupt(isr_type);
-    
-    if (/*isr_type == Timer_RPM_INTR_MASK_CC_MATCH*/1)
+    if (isr_type == Timer_RPM_INTR_MASK_CC_MATCH)
     {
         Timer_RPM_TriggerCommand(Timer_RPM_MASK, Timer_RPM_CMD_RELOAD);
+        rpm_counter_value = Timer_RPM_ReadCaptureBuf();
+    }
+    else if (isr_type == Timer_RPM_INTR_MASK_TC)
+    {
+        Timer_RPM_TriggerCommand(Timer_RPM_MASK, Timer_RPM_CMD_RELOAD);
+        rpm_counter_value = 0;
     }
 }
 

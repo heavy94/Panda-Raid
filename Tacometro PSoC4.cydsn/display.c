@@ -28,7 +28,11 @@ void display_update(uint32 speed, uint32 heading, uint32 rpm, uint8 status)
     uint8 seg_ten = 0;
     uint8 seg_uni = 0;
     uint32 seg_rpm = 0; //Rightmost value represents de first LED
- 
+    
+    CyPins_SetPin(DISP_LOAD_0);
+    CyDelayUs(1);
+    CyPins_ClearPin(DISP_LOAD_0);
+    
     //Divide speed in individual digits
     if (speed >= 1000) speed = 999; // Cap speed value to three digits 
     uint32 speed_cen = speed / 100;
@@ -119,11 +123,6 @@ void display_update(uint32 speed, uint32 heading, uint32 rpm, uint8 status)
     DISP_SPI_WriteTxData(tx_array[2]);
     DISP_SPI_WriteTxData(tx_array[1]);
     DISP_SPI_WriteTxData(tx_array[0]);
-    
-    CyDelayUs(50);
-    CyPins_SetPin(DISP_LOAD_0);
-    CyDelayUs(50);
-    CyPins_ClearPin(DISP_LOAD_0);
     
     //CyPins_ClearPin(OE_0);
     //CyPins_ClearPin(OE_1);
